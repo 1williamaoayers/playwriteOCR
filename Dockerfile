@@ -16,6 +16,9 @@ COPY requirements.txt .
 # 安装Python依赖
 RUN pip install --no-cache-dir -r requirements.txt
 
+# 显式安装对应版本的浏览器（修复自动升级导致的版本不匹配问题）
+RUN playwright install chromium --with-deps
+
 # 复制项目代码
 COPY app.py .
 COPY scrapers/ ./scrapers/
