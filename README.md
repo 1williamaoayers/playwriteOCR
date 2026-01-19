@@ -32,25 +32,77 @@ python app.py
 
 ## 📡 API接口
 
-### 健康检查
-```
+### 1. 健康检查
+```bash
 GET /api/v1/health
 ```
-
-### 获取数据源列表
+返回示例:
+```json
+{"status": "ok", "service": "playwrite-scraper", "version": "1.0.0", "scrapers_count": 8}
 ```
+
+---
+
+### 2. 获取数据源列表
+```bash
 GET /api/v1/sources
 ```
-
-### 采集新闻
+返回示例:
+```json
+{
+  "success": true,
+  "sources": [
+    {"id": "eastmoney", "name": "东方财富", "estimated_time": "~10秒"},
+    {"id": "gelonghui", "name": "格隆汇", "estimated_time": "~7秒"}
+  ],
+  "default": ["eastmoney", "gelonghui", "zhitong"]
+}
 ```
-GET /api/v1/news?keyword=小米集团&sources=all&limit=20
+
+---
+
+### 3. 采集新闻（核心接口）
+```bash
+GET /api/v1/news?keyword=小米集团&sources=eastmoney,gelonghui&limit=20
 ```
 
 **参数**:
-- `keyword`: 搜索关键词（必填）
-- `sources`: 数据源，逗号分隔或`all`（默认all）
-- `limit`: 每个源采集数量（默认20）
+| 参数 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| `keyword` | string | ✅ | - | 搜索关键词 |
+| `sources` | string | ❌ | all | 数据源ID，逗号分隔或`all` |
+| `limit` | int | ❌ | 20 | 每个源的采集数量 |
+
+**可用数据源ID**: `eastmoney`, `gelonghui`, `cls`, `futu`, `futu_report`, `zhitong`, `wallstreet`, `toutiao`
+
+**返回示例**:
+```json
+{
+  "success": true,
+  "keyword": "小米集团",
+  "data": [
+    {
+      "symbol": "小米集团",
+      "title": "小米汽车月交付突破3万台",
+      "summary": "小米集团发布最新交付数据...",
+      "source": "东方财富",
+      "url": "https://...",
+      "publish_time": "2026-01-19 09:30"
+    }
+  ],
+  "metadata": {
+    "total_count": 196,
+    "sources_used": ["eastmoney", "gelonghui"],
+    "duration_seconds": 18.5,
+    "errors": null
+  }
+}
+```
+
+**错误返回**:
+```json
+{"success": false, "error": "缺少 keyword 参数"}
+```
 
 ## 📊 数据源性能
 
