@@ -40,56 +40,32 @@ GET /api/v1/health
 ```
 返回示例:
 ```json
-{"status": "ok", "service": "playwrite-scraper", "version": "1.0.0", "scrapers_count": 8}
+{"status": "ok", "service": "playwrite-scraper", "version": "1.0.0"}
 ```
 
 ---
 
-### 2. 获取数据源列表
+### 2. 采集新闻（核心接口）
 ```bash
-GET /api/v1/sources
-```
-返回示例:
-```json
-{
-  "success": true,
-  "sources": [
-    {"id": "eastmoney", "name": "东方财富", "estimated_time": "~10秒"},
-    {"id": "gelonghui", "name": "格隆汇", "estimated_time": "~7秒"}
-  ],
-  "default": ["eastmoney", "gelonghui", "zhitong"]
-}
-```
-
----
-
-### 3. 采集新闻（核心接口）
-```bash
-GET /api/v1/news?keyword=小米集团&sources=eastmoney,gelonghui&limit=20
+GET /api/v1/news?keyword=小米集团&limit=20
 ```
 
 **参数**:
 | 参数 | 类型 | 必填 | 默认值 | 说明 |
 |------|------|------|--------|------|
 | `keyword` | string | ✅ | - | 搜索关键词 |
-| `sources` | string | ❌ | all | 数据源ID，逗号分隔或`all` |
-| `limit` | int | ❌ | 20 | 每个源的采集数量 |
-
-**可用数据源ID**: `eastmoney`, `gelonghui`, `cls`, `futu`, `futu_report`, `zhitong`, `wallstreet`, `toutiao`
+| `limit` | int | ❌ | 20 | 采集数量 |
 
 **curl调用示例**（支持任意关键词）:
 ```bash
 # 查询腾讯新闻
-curl -G "http://localhost:9527/api/v1/news" \
-  --data-urlencode "keyword=腾讯" -d "sources=eastmoney" -d "limit=10"
+curl -G "http://localhost:9527/api/v1/news" --data-urlencode "keyword=腾讯" -d "limit=20"
 
-# 查询京东，使用多个数据源
-curl -G "http://localhost:9527/api/v1/news" \
-  --data-urlencode "keyword=京东" -d "sources=eastmoney,gelonghui,cls" -d "limit=20"
+# 查询京东
+curl -G "http://localhost:9527/api/v1/news" --data-urlencode "keyword=京东"
 
-# 查询茅台，使用全部数据源
-curl -G "http://localhost:9527/api/v1/news" \
-  --data-urlencode "keyword=贵州茅台" -d "sources=all"
+# 查询茅台
+curl -G "http://localhost:9527/api/v1/news" --data-urlencode "keyword=贵州茅台" -d "limit=50"
 ```
 
 **返回示例**:

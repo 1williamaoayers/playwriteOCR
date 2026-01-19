@@ -409,21 +409,7 @@ def api_health():
         'scrapers_count': len(SCRAPERS)
     })
 
-@app.route('/api/v1/sources')
-def api_sources():
-    """获取可用数据源列表"""
-    sources = []
-    for key, info in SCRAPERS.items():
-        sources.append({
-            'id': key,
-            'name': info['name'],
-            'estimated_time': info['time']
-        })
-    return jsonify({
-        'success': True,
-        'sources': sources,
-        'default': ['eastmoney', 'gelonghui', 'zhitong']
-    })
+# /api/v1/sources 接口已移除，不对外暴露数据源列表
 
 @app.route('/api/v1/news')
 def api_news():
@@ -431,27 +417,19 @@ def api_news():
     
     参数:
         keyword: 关键词 (必须)
-        sources: 数据源，逗号分隔，如 eastmoney,gelonghui (默认 all)
         limit: 每个源的采集数量 (默认 20)
     
     示例:
-        /api/v1/news?keyword=小米集团&sources=eastmoney,gelonghui&limit=20
+        /api/v1/news?keyword=小米集团&limit=20
     """
     keyword = request.args.get('keyword', '')
-    sources_str = request.args.get('sources', 'all')
     limit = request.args.get('limit', '20', type=int)
     
     if not keyword:
         return jsonify({'success': False, 'error': '缺少 keyword 参数'}), 400
     
-    # 解析数据源
-    if sources_str.lower() == 'all':
-        sources = list(SCRAPERS.keys())
-    else:
-        sources = [s.strip() for s in sources_str.split(',') if s.strip() in SCRAPERS]
-    
-    if not sources:
-        return jsonify({'success': False, 'error': '无效的数据源'}), 400
+    # 强制使用所有数据源，不提供选择
+    sources = list(SCRAPERS.keys())
     
     start_time = time.time()
     all_results = []
