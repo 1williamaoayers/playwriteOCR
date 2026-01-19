@@ -1,0 +1,47 @@
+# PlaywriteOCR 财经爬虫 Docker Compose 配置
+# 用法: docker-compose up -d
+
+services:
+  scraper:
+    build: .
+    container_name: playwrite-scraper
+    
+    # 端口映射 (VPS的9527端口 → 容器的9527端口)
+    ports:
+      - "9527:9527"
+    
+    # 24小时运行：除非手动停止，否则自动重启
+    restart: unless-stopped
+    
+    # 资源限制（可根据VPS配置调整）
+    deploy:
+      resources:
+        limits:
+          memory: 2G      # 最大2GB内存（Playwright需要较大内存）
+        reservations:
+          memory: 512M    # 预留512MB
+    
+    # 环境变量
+    environment:
+      - TZ=Asia/Shanghai
+      - PYTHONUNBUFFERED=1    # 实时输出日志
+    
+    # 挂载输出目录（可选，方便查看生成的MD文件）
+    volumes:
+      - ./output:/app/output
+      - ./screenshots:/app/screenshots
+    
+    # 日志配置
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"     # 单个日志文件最大10MB
+        max-file: "3"       # 最多保留3个日志文件
+    
+    # 健康检查
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9527/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

@@ -1,0 +1,14 @@
+# PlaywriteOCR 依赖清单
+# 用于Docker镜像构建
+
+# Web框架
+flask>=3.0.0
+
+# 浏览器自动化（官方镜像已包含，但需要Python包）
+playwright>=1.40.0
+
+# HTTP请求（部分爬虫可能用到）
+requests>=2.31.0
+
+# 日期处理
+python-dateutil>=2.8.0
