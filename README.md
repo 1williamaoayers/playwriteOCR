@@ -75,6 +75,21 @@ GET /api/v1/news?keyword=小米集团&sources=eastmoney,gelonghui&limit=20
 
 **可用数据源ID**: `eastmoney`, `gelonghui`, `cls`, `futu`, `futu_report`, `zhitong`, `wallstreet`, `toutiao`
 
+**curl调用示例**（支持任意关键词）:
+```bash
+# 查询腾讯新闻
+curl -G "http://localhost:9527/api/v1/news" \
+  --data-urlencode "keyword=腾讯" -d "sources=eastmoney" -d "limit=10"
+
+# 查询京东，使用多个数据源
+curl -G "http://localhost:9527/api/v1/news" \
+  --data-urlencode "keyword=京东" -d "sources=eastmoney,gelonghui,cls" -d "limit=20"
+
+# 查询茅台，使用全部数据源
+curl -G "http://localhost:9527/api/v1/news" \
+  --data-urlencode "keyword=贵州茅台" -d "sources=all"
+```
+
 **返回示例**:
 ```json
 {
