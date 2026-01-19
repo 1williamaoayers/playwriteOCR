@@ -14,12 +14,12 @@
 ### Docker部署（推荐）
 
 ```bash
-# 克隆仓库
-git clone https://github.com/1williamaoayers/playwriteOCR.git
-cd playwriteOCR
+# 方式1：一键拉取镜像运行（最简单）
+docker run -d --name playwriteocr -p 9527:9527 ghcr.io/1williamaoayers/playwriteocr:latest
 
-# 一键部署
-./deploy.sh
+# 方式2：克隆仓库自行构建
+git clone https://github.com/1williamaoayers/playwriteOCR.git
+cd playwriteOCR && ./deploy.sh
 ```
 
 ### 本地运行
