@@ -17,19 +17,40 @@ app = Flask(__name__)
 
 # 爬虫配置
 SCRAPERS = {
-    'toutiao': {'name': '今日头条', 'file': 'scrapers/toutiao_scraper.py', 'time': '~65秒'},
-    'cls': {'name': '财联社', 'file': 'scrapers/cls_scraper.py', 'time': '~8秒'},
-    'wallstreet': {'name': '华尔街见闻', 'file': 'scrapers/wallstreet_scraper.py', 'time': '~13秒'},
-    'futu': {'name': '富途新闻', 'file': 'scrapers/futu_scraper.py', 'time': '~17秒'},
-    'futu_report': {'name': '富途研报', 'file': 'scrapers/futu_report_scraper.py', 'time': '~13秒'},
-    'gelonghui': {'name': '格隆汇', 'file': 'scrapers/gelonghui_scraper.py', 'time': '~7秒'},
-    'eastmoney': {'name': '东方财富', 'file': 'scrapers/eastmoney_scraper.py', 'time': '~10秒'},
+    "toutiao": {
+        "name": "今日头条",
+        "file": "scrapers/toutiao_scraper.py",
+        "time": "~65秒",
+    },
+    "cls": {"name": "财联社", "file": "scrapers/cls_scraper.py", "time": "~8秒"},
+    "wallstreet": {
+        "name": "华尔街见闻",
+        "file": "scrapers/wallstreet_scraper.py",
+        "time": "~13秒",
+    },
+    "futu": {"name": "富途新闻", "file": "scrapers/futu_scraper.py", "time": "~17秒"},
+    "futu_report": {
+        "name": "富途研报",
+        "file": "scrapers/futu_report_scraper.py",
+        "time": "~13秒",
+    },
+    "gelonghui": {
+        "name": "格隆汇",
+        "file": "scrapers/gelonghui_scraper.py",
+        "time": "~7秒",
+    },
+    "eastmoney": {
+        "name": "东方财富",
+        "file": "scrapers/eastmoney_scraper.py",
+        "time": "~10秒",
+    },
 }
 
 # 任务状态
 tasks = {}
 
-HTML_TEMPLATE = '''
+HTML_TEMPLATE = (
+    """
 <!DOCTYPE html>
 <html lang="zh">
 <head>
@@ -288,7 +309,9 @@ HTML_TEMPLATE = '''
     </div>
     
     <script>
-        const scrapers = ''' + json.dumps(SCRAPERS) + ''';
+        const scrapers = """
+    + json.dumps(SCRAPERS)
+    + """;
         
         function init() {
             const container = document.getElementById('sources');
@@ -392,147 +415,174 @@ HTML_TEMPLATE = '''
     </script>
 </body>
 </html>
-'''
+"""
+)
 
 # ========== RESTful API 端点 ==========
 # 供股票分析项目等外部系统调用
 
-@app.route('/api/v1/health')
+
+@app.route("/api/v1/health")
 def api_health():
     """健康检查"""
-    return jsonify({
-        'status': 'ok',
-        'service': 'playwrite-scraper',
-        'version': '1.0.0',
-        'scrapers_count': len(SCRAPERS)
-    })
+    return jsonify(
+        {
+            "status": "ok",
+            "service": "playwrite-scraper",
+            "version": "1.0.0",
+            "scrapers_count": len(SCRAPERS),
+        }
+    )
+
 
 # /api/v1/sources 接口已移除，不对外暴露数据源列表
 
-@app.route('/api/v1/news')
+
+@app.route("/api/v1/news")
 def api_news():
     """采集新闻 - JSON API
-    
+
     参数:
         keyword: 关键词 (必须)
         limit: 每个源的采集数量 (默认 20)
-    
+
     示例:
         /api/v1/news?keyword=小米集团&limit=20
     """
-    keyword = request.args.get('keyword', '')
-    limit = request.args.get('limit', '20', type=int)
-    
+    keyword = request.args.get("keyword", "")
+    limit = request.args.get("limit", "20", type=int)
+
     if not keyword:
-        return jsonify({'success': False, 'error': '缺少 keyword 参数'}), 400
-    
+        return jsonify({"success": False, "error": "缺少 keyword 参数"}), 400
+
     # 强制使用所有数据源，不提供选择
     sources = list(SCRAPERS.keys())
-    
+
     start_time = time.time()
     all_results = []
     errors = []
-    
+
     for source in sources:
         scraper = SCRAPERS[source]
         try:
             # 运行爬虫，使用 --json 模式
-            cmd = [sys.executable, scraper['file'], keyword, str(limit), '--json']
+            cmd = [sys.executable, scraper["file"], keyword, str(limit), "--json"]
             proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-            
+
             if proc.returncode == 0:
                 try:
                     items = json.loads(proc.stdout)
                     # 转换为股票项目需要的标准格式
                     for item in items:
                         standardized = {
-                            'symbol': keyword,
-                            'title': item.get('title', ''),
-                            'summary': item.get('summary', ''),
-                            'content': item.get('summary', ''),  # 用摘要作为正文
-                            'source': scraper['name'],
-                            'source_type': 'scraper',
-                            'url': item.get('url', ''),
-                            'publish_time': item.get('time', ''),
-                            'sentiment': 'neutral',
-                            'relevance_score': 0.8,
-                            'tags': [keyword],
-                            'created_at': datetime.now().isoformat()
+                            "symbol": keyword,
+                            "title": item.get("title", ""),
+                            "summary": item.get("summary", ""),
+                            "content": item.get("summary", ""),  # 用摘要作为正文
+                            "source": scraper["name"],
+                            "source_type": "scraper",
+                            "url": item.get("url", ""),
+                            "publish_time": item.get("time", ""),
+                            "sentiment": "neutral",
+                            "relevance_score": 0.8,
+                            "tags": [keyword],
+                            "created_at": datetime.now().isoformat(),
                         }
                         all_results.append(standardized)
                 except json.JSONDecodeError:
                     errors.append(f"{source}: JSON解析失败")
             else:
                 errors.append(f"{source}: {proc.stderr[:100]}")
-                
+
         except subprocess.TimeoutExpired:
             errors.append(f"{source}: 采集超时")
         except Exception as e:
             errors.append(f"{source}: {str(e)}")
-    
+
     elapsed = time.time() - start_time
-    
-    return jsonify({
-        'success': True,
-        'keyword': keyword,
-        'data': all_results,
-        'metadata': {
-            'total_count': len(all_results),
-            'sources_used': sources,
-            'duration_seconds': round(elapsed, 2),
-            'errors': errors if errors else None
+
+    return jsonify(
+        {
+            "success": True,
+            "keyword": keyword,
+            "data": all_results,
+            "metadata": {
+                "total_count": len(all_results),
+                "sources_used": sources,
+                "duration_seconds": round(elapsed, 2),
+                "errors": errors if errors else None,
+            },
         }
-    })
+    )
+
 
 # ========== Web 界面 ==========
 
-@app.route('/')
+
+@app.route("/")
 def index():
     return render_template_string(HTML_TEMPLATE)
 
-@app.route('/api/scrape', methods=['POST'])
+
+@app.route("/api/scrape", methods=["POST"])
 def api_scrape():
     data = request.json
-    keyword = data.get('keyword', '')
-    count = data.get('count', 20)
-    sources = data.get('sources', [])
-    
+    keyword = data.get("keyword", "")
+    count = data.get("count", 20)
+    sources = data.get("sources", [])
+
     results = {}
-    
+
     for source in sources:
         if source not in SCRAPERS:
-            results[source] = {'status': 'error', 'message': '未知数据源'}
+            results[source] = {"status": "error", "message": "未知数据源"}
             continue
-        
+
         scraper = SCRAPERS[source]
         try:
+            # 启动前清理残留浏览器进程
+            subprocess.run(
+                ["pkill", "-9", "-f", "chromium"], capture_output=True, timeout=5
+            )
+            time.sleep(0.5)
+
             # 运行爬虫
-            cmd = [sys.executable, scraper['file'], keyword, str(count)]
+            cmd = [sys.executable, scraper["file"], keyword, str(count)]
             proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-            
+
             if proc.returncode == 0:
                 # 查找生成的文件
                 import glob
-                files = glob.glob(f'{keyword}_{scraper["name"]}_*.md')
+
+                files = glob.glob(f"{keyword}_{scraper['name']}_*.md")
                 files.sort(reverse=True)
-                
+
                 if files:
-                    with open(files[0], 'r', encoding='utf-8') as f:
+                    with open(files[0], "r", encoding="utf-8") as f:
                         content = f.read()
-                    results[source] = {'status': 'done', 'message': content[:2000] + '\n...(更多内容请查看文件)' if len(content) > 2000 else content}
+                    results[source] = {
+                        "status": "done",
+                        "message": content[:2000] + "\n...(更多内容请查看文件)"
+                        if len(content) > 2000
+                        else content,
+                    }
                 else:
-                    results[source] = {'status': 'done', 'message': proc.stdout}
+                    results[source] = {"status": "done", "message": proc.stdout}
             else:
-                results[source] = {'status': 'error', 'message': proc.stderr or proc.stdout}
-                
+                results[source] = {
+                    "status": "error",
+                    "message": proc.stderr or proc.stdout,
+                }
+
         except subprocess.TimeoutExpired:
-            results[source] = {'status': 'error', 'message': '采集超时'}
+            results[source] = {"status": "error", "message": "采集超时"}
         except Exception as e:
-            results[source] = {'status': 'error', 'message': str(e)}
-    
+            results[source] = {"status": "error", "message": str(e)}
+
     return jsonify(results)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     print("🚀 启动财经爬虫控制台...")
     print("📍 访问: http://localhost:9527")
-    app.run(host='0.0.0.0', port=9527, debug=False)
+    app.run(host="0.0.0.0", port=9527, debug=False)
