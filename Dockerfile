@@ -1,7 +1,7 @@
 # PlaywriteOCR 财经爬虫 Docker镜像
 # 基于官方Playwright镜像，已包含浏览器
 
-FROM mcr.microsoft.com/playwright/python:v1.40.0-jammy
+FROM mcr.microsoft.com/playwright/python:v1.58.0-jammy
 
 # 设置工作目录
 WORKDIR /app
