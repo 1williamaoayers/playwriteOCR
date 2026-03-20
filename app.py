@@ -24,7 +24,6 @@ SCRAPERS = {
     'futu_report': {'name': '富途研报', 'file': 'scrapers/futu_report_scraper.py', 'time': '~13秒'},
     'gelonghui': {'name': '格隆汇', 'file': 'scrapers/gelonghui_scraper.py', 'time': '~7秒'},
     'eastmoney': {'name': '东方财富', 'file': 'scrapers/eastmoney_scraper.py', 'time': '~10秒'},
-    'zhitong': {'name': '智通财经', 'file': 'scrapers/zhitong_scraper.py', 'time': '~24秒'},
 }
 
 # 任务状态
@@ -290,7 +289,6 @@ HTML_TEMPLATE = '''
     
     <script>
         const scrapers = ''' + json.dumps(SCRAPERS) + ''';
-        let selectedSources = new Set(['eastmoney', 'gelonghui', 'zhitong']);
         
         function init() {
             const container = document.getElementById('sources');
