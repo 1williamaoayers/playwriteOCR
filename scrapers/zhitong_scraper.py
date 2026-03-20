@@ -13,14 +13,24 @@ from datetime import datetime
 from playwright.sync_api import sync_playwright
 
 
-def scrape_zhitong(keyword: str, target_count: int = 20):
+def scrape_zhitong(keyword: str, target_count: int = 20, proxy: str = ""):
     results = []
     seen = set()
 
     with sync_playwright() as p:
         print("🚀 启动浏览器...")
         browser = p.chromium.launch(headless=True, args=["--no-sandbox"])
+
         context = browser.new_context(viewport={"width": 1920, "height": 1080})
+
+        if proxy:
+            print(f"🔗 使用代理: {proxy}")
+            context = browser.new_context(
+                viewport={"width": 1920, "height": 1080}, proxy={"server": proxy}
+            )
+        else:
+            context = browser.new_context(viewport={"width": 1920, "height": 1080})
+
         page = context.new_page()
 
         try:
@@ -143,19 +153,30 @@ def scrape_zhitong(keyword: str, target_count: int = 20):
 
 def main():
     if len(sys.argv) < 2:
-        print("用法: python zhitong_scraper.py <关键词> [数量] [--json]")
+        print(
+            "用法: python zhitong_scraper.py <关键词> [数量] [--json] [--proxy <代理地址>]"
+        )
         sys.exit(1)
 
     # 解析参数
     keyword = sys.argv[1]
     limit = 20
     json_mode = False
+    proxy = ""
 
-    for arg in sys.argv[2:]:
+    i = 2
+    while i < len(sys.argv):
+        arg = sys.argv[i]
         if arg == "--json":
             json_mode = True
+        elif arg == "--proxy" and i + 1 < len(sys.argv):
+            proxy = sys.argv[i + 1]
+            i += 2
         elif arg.isdigit():
             limit = int(arg)
+            i += 1
+        else:
+            i += 1
 
     # JSON 模式
     if json_mode:
@@ -164,7 +185,7 @@ def main():
 
         old_stdout = sys_module.stdout
         sys_module.stdout = io.StringIO()
-        data = scrape_zhitong(keyword, limit)
+        data = scrape_zhitong(keyword, limit, proxy)
         sys_module.stdout = old_stdout
         print(json_lib.dumps(data, ensure_ascii=False))
         return
@@ -175,7 +196,7 @@ def main():
     print(f"{'=' * 50}")
 
     start = time.time()
-    data = scrape_zhitong(keyword, limit)
+    data = scrape_zhitong(keyword, limit, proxy)
     elapsed = time.time() - start
 
     if data:
